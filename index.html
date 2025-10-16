@@ -2,39 +2,72 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Weer Fractals</title>
   <style>
     body {
-      background: #000;
-      color: #fff;
-      font-family: sans-serif;
+      background: radial-gradient(circle at top, #111 0%, #000 100%);
+      color: #eee;
+      font-family: "Segoe UI", sans-serif;
       text-align: center;
       margin: 0;
       padding: 0;
+    }
+    h1 {
+      margin-top: 20px;
+      font-size: 1.8em;
+    }
+    #weatherInfo {
+      margin-bottom: 20px;
+      font-weight: 500;
+      color: #ccc;
     }
     .row {
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
-      gap: 10px;
-      padding: 20px;
+      gap: 20px;
+      padding: 10px;
     }
     canvas {
-      border: 1px solid #555;
+      border: 1px solid #444;
       background: #111;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.05);
     }
     .gallery {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      margin: 30px auto;
+      max-width: 95%;
+    }
+    .set {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 10px;
-      margin: 20px;
+      background: rgba(255,255,255,0.05);
+      padding: 10px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
-    .gallery img {
-      width: 150px;
-      height: 150px;
+    .set-header {
+      width: 100%;
+      font-size: 0.9em;
+      color: #bbb;
+      text-align: right;
+      margin-bottom: 4px;
+    }
+    .set img {
+      width: 140px;
+      height: 140px;
       object-fit: cover;
-      border: 1px solid #444;
+      border-radius: 8px;
+      border: 1px solid #333;
     }
   </style>
 </head>
@@ -213,9 +246,12 @@
       const julia = document.getElementById('juliaCanvas').toDataURL();
       const tree = document.getElementById('treeCanvas').toDataURL();
       const koch = document.getElementById('kochCanvas').toDataURL();
+      const date = new Date().toLocaleString('nl-NL', {
+        weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+      });
 
       let sets = JSON.parse(localStorage.getItem("fractalSets") || "[]");
-      sets.unshift({ julia, tree, koch });
+      sets.unshift({ date, julia, tree, koch });
       sets = sets.slice(0, 3);
       localStorage.setItem("fractalSets", JSON.stringify(sets));
       updateGallery(sets);
@@ -224,11 +260,18 @@
     function updateGallery(sets) {
       gallery.innerHTML = "";
       sets.forEach(set => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "set";
+        const header = document.createElement("div");
+        header.className = "set-header";
+        header.textContent = set.date;
+        wrapper.appendChild(header);
         ["julia", "tree", "koch"].forEach(type => {
           const img = document.createElement("img");
           img.src = set[type];
-          gallery.appendChild(img);
+          wrapper.appendChild(img);
         });
+        gallery.appendChild(wrapper);
       });
     }
 
@@ -236,16 +279,6 @@
     const history = JSON.parse(localStorage.getItem("fractalSets") || "[]");
     if (history.length) updateGallery(history);
     fetchWeather();
-
-    const now = new Date();
-    const nextUpdate = new Date();
-    nextUpdate.setHours(7, 0, 0, 0);
-    if (now > nextUpdate) nextUpdate.setDate(nextUpdate.getDate() + 1);
-    const timeout = nextUpdate - now;
-    setTimeout(() => {
-      fetchWeather();
-      setInterval(fetchWeather, 24 * 60 * 60 * 1000);
-    }, timeout);
   </script>
 </body>
 </html>
